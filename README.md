@@ -46,6 +46,10 @@ sub '\d+' '($0)' **/*.txt
 sub 'sell(\S*)' 'buy$1' *.txt
 ```
 
+## Screenshot
+
+![screenshot](http://i.imgur.com/0ZOSUlo.png)
+
 ## Notes
 
 See the documentation for the regular expression syntax used by the `FIND` pattern here:
