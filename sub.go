@@ -91,7 +91,9 @@ func main() {
 fileLoop:
 	for _, filename := range files {
 		if !isRegular(filename) {
-			fmt.Fprintf(os.Stderr, "Skipping %s (not a regular file).\n", filename)
+			if verbose {
+				fmt.Fprintf(os.Stderr, "Skipping %s (not a regular file).\n", filename)
+			}
 			continue
 		}
 		file, err := os.Open(filename)
@@ -101,7 +103,9 @@ fileLoop:
 		}
 		defer file.Close()
 		if isBinary(file) {
-			fmt.Fprintf(os.Stderr, "Skipping %s (binary file).\n", filename)
+			if verbose {
+				fmt.Fprintf(os.Stderr, "Skipping %s (binary file).\n", filename)
+			}
 			continue
 		}
 
