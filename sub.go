@@ -40,17 +40,13 @@ where OPTIONS are
 	os.Exit(status)
 }
 
-// Guess whether a file is binary by reading the first X bytes and seeing if there are any nulls.
-func isBinary(filename string) bool {
-	f, err := os.Open(filename)
-	if err != nil {
-		return false
-	}
-	defer f.Close()
-
+// isBinary guesses whether a file is binary by reading the first X bytes and seeing if there are any nulls.
+// Assumes the file is at the beginning.
+func isBinary(file *os.File) bool {
+	defer file.Seek(0, 0)
 	buf := make([]byte, binaryDetectionBytes)
 	for {
-		n, err := f.Read(buf)
+		n, err := file.Read(buf)
 		if err != nil && err != io.EOF {
 			return false
 		}
@@ -65,6 +61,15 @@ func isBinary(filename string) bool {
 		buf = buf[n:]
 	}
 	return false
+}
+
+// isRegular determines whether the file is a regular file or not.
+func isRegular(filename string) bool {
+	stat, err := os.Lstat(filename)
+	if err != nil {
+		return false
+	}
+	return stat.Mode().IsRegular()
 }
 
 func main() {
@@ -85,8 +90,8 @@ func main() {
 
 fileLoop:
 	for _, filename := range files {
-		if isBinary(filename) {
-			fmt.Fprintf(os.Stderr, "Skipping %s (binary file).\n", filename)
+		if !isRegular(filename) {
+			fmt.Fprintf(os.Stderr, "Skipping %s (not a regular file).\n", filename)
 			continue
 		}
 		file, err := os.Open(filename)
@@ -95,6 +100,10 @@ fileLoop:
 			continue
 		}
 		defer file.Close()
+		if isBinary(file) {
+			fmt.Fprintf(os.Stderr, "Skipping %s (binary file).\n", filename)
+			continue
+		}
 
 		var temp *os.File
 		if !dryRun {
