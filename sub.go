@@ -116,6 +116,12 @@ fileLoop:
 				fmt.Fprintln(os.Stderr, err)
 				continue
 			}
+			stat, err := file.Stat()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Could not determine file permissions: %s", err)
+				continue
+			}
+			temp.Chmod(stat.Mode())
 			defer temp.Close()
 		}
 
