@@ -108,17 +108,21 @@ fileLoop:
 			}
 			continue
 		}
+		stat, err := file.Stat()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Could not stat file %s: %s\n", filename, err)
+			continue
+		}
+		if stat.Mode().Perm()&0222 == 0 {
+			fmt.Fprintf(os.Stderr, "Skipping write-protected file %s\n", filename)
+			continue
+		}
 
 		var temp *os.File
 		if !dryRun {
 			temp, err = ioutil.TempFile(".", filename)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
-				continue
-			}
-			stat, err := file.Stat()
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Could not determine file permissions: %s", err)
 				continue
 			}
 			temp.Chmod(stat.Mode())
