@@ -141,7 +141,6 @@ fileLoop:
 				if err == io.EOF {
 					done = true
 					if len(line) == 0 {
-						fmt.Println("zero")
 						break
 					}
 				} else {
