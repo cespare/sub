@@ -122,15 +122,22 @@ fileLoop:
 		matched := false
 		reader := bufio.NewReader(file)
 		line := 0
+		done := false
 
-		for {
+		for !done {
 			line++
 			line, err := reader.ReadBytes('\n')
 			if err != nil {
-				if err != io.EOF {
+				if err == io.EOF {
+					done = true
+					if len(line) == 0 {
+						fmt.Println("zero")
+						break
+					}
+				} else {
 					fmt.Fprintln(os.Stderr, err)
+					break
 				}
-				break
 			}
 
 			indices := find.FindAllIndex(line, -1)
