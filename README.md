@@ -5,6 +5,8 @@ Sub is a simple tool for doing find/replace across files.
 Sub is a new tool that modifies your files. Use it at your own risk. (In particular, commit or back up changes
 before you have sub go to town on your data.)
 
+Sub (probably) doesn't work on Windows.
+
 ## Installation
 
 You'll need Go installed. Then:
