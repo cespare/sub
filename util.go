@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"syscall"
-	"unsafe"
 )
 
 const (
@@ -17,13 +15,6 @@ const (
 )
 
 var tty = isatty(os.Stdout.Fd())
-
-// Copied from code.google.com/p/go.crypto/ssh/terminal.
-func isatty(fd uintptr) bool {
-	termios := syscall.Termios{}
-	_, _, err := syscall.Syscall6(syscall.SYS_IOCTL, fd, ioctlReadTermios, uintptr(unsafe.Pointer(&termios)), 0, 0, 0)
-	return err == 0
-}
 
 func colorize(s string, color int) string {
 	if !tty {

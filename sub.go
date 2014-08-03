@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/mattn/go-colorable"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -20,6 +21,7 @@ const (
 var (
 	dryRun  bool
 	verbose bool
+	out     io.Writer
 )
 
 func init() {
@@ -29,6 +31,8 @@ func init() {
 	flag.Parse()
 
 	rand.Seed(time.Now().UnixNano())
+
+	out = colorable.NewColorableStdout()
 }
 
 func usage(status int) {
@@ -163,7 +167,7 @@ fileLoop:
 			if !matched {
 				// Only print out the filename in blue if we're in verbose mode.
 				if verbose {
-					fmt.Println(colorize(filename, ColorBlue))
+					fmt.Fprintln(out, colorize(filename, ColorBlue))
 				} else {
 					fmt.Println(filename)
 				}
@@ -173,10 +177,10 @@ fileLoop:
 				highlighted := highlight(line, ColorRed, indices)
 				replacedAndHighlighted := subAndHighlight(line, find, replace, ColorGreen, indices)
 
-				fmt.Print(colorize("- ", ColorRed))
-				os.Stdout.Write(highlighted)
-				fmt.Print(colorize("+ ", ColorGreen))
-				os.Stdout.Write(replacedAndHighlighted)
+				fmt.Fprint(out, colorize("- ", ColorRed))
+				out.Write(highlighted)
+				fmt.Fprint(out, colorize("+ ", ColorGreen))
+				out.Write(replacedAndHighlighted)
 			}
 			if !dryRun {
 				replaced := substitute(line, find, replace, indices)
