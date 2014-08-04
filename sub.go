@@ -196,7 +196,7 @@ fileLoop:
 			// We'll .Close these twice, but that's fine.
 			temp.Close()
 			file.Close()
-			if err := os.Rename(temp.Name(), filename); err != nil {
+			if err := renameFile(temp.Name(), filename); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				continue
 			}
