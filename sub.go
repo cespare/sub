@@ -81,6 +81,10 @@ func main() {
 	if len(args) < 3 {
 		usage(1)
 	}
+	runApp(args)
+}
+
+func runApp(args []string) {
 	findPattern := args[0]
 	replacePattern := args[1]
 	files := args[2:]
