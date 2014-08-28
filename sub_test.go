@@ -61,5 +61,7 @@ func testConf(find, replace string) config {
 	return config{
 		find:    regexp.MustCompile(find),
 		replace: []byte(replace),
+		stdout:  ioutil.Discard,
+		stderr:  ioutil.Discard,
 	}
 }

@@ -16,12 +16,14 @@ type config struct {
 
 	find    *regexp.Regexp
 	replace []byte
+	stdout  io.Writer
+	stderr  io.Writer
 }
 
 func (c *config) run(filename string) (err error) {
 	if !isRegular(filename) {
 		if c.verb {
-			fmt.Fprintf(os.Stderr, "Skipping %s (not a regular file).\n", filename)
+			fmt.Fprintf(c.stderr, "Skipping %s (not a regular file).\n", filename)
 		}
 		return nil
 	}
@@ -33,7 +35,7 @@ func (c *config) run(filename string) (err error) {
 
 	if isBinary(f) {
 		if c.verb {
-			fmt.Fprintf(os.Stderr, "Skipping %s (binary file).\n", filename)
+			fmt.Fprintf(c.stderr, "Skipping %s (binary file).\n", filename)
 		}
 		return nil
 	}
@@ -43,7 +45,7 @@ func (c *config) run(filename string) (err error) {
 	}
 	if stat.Mode().Perm()&0222 == 0 {
 		if c.verb {
-			fmt.Fprintf(os.Stderr, "Skipping write-protected file %s\n", filename)
+			fmt.Fprintf(c.stderr, "Skipping write-protected file %s\n", filename)
 		}
 		return nil
 	}
@@ -76,7 +78,7 @@ lineLoop:
 				break lineLoop
 			}
 		default:
-			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintln(c.stderr, err)
 			break lineLoop
 		}
 
@@ -93,9 +95,9 @@ lineLoop:
 		if !matched {
 			// Only print out the filename in blue if we're in verbose mode.
 			if c.verb {
-				fmt.Println(colorize(filename, ColorBlue))
+				fmt.Fprintln(c.stdout, colorize(filename, ColorBlue))
 			} else {
-				fmt.Println(filename)
+				fmt.Fprintln(c.stdout, filename)
 			}
 			matched = true
 		}
@@ -103,10 +105,10 @@ lineLoop:
 			highlighted := highlight(line, ColorRed, indices)
 			replacedAndHighlighted := subAndHighlight(line, c.find, c.replace, ColorGreen, indices)
 
-			fmt.Print(colorize("- ", ColorRed))
-			os.Stdout.Write(highlighted)
-			fmt.Print(colorize("+ ", ColorGreen))
-			os.Stdout.Write(replacedAndHighlighted)
+			fmt.Fprint(c.stdout, colorize("- ", ColorRed))
+			c.stdout.Write(highlighted)
+			fmt.Fprint(c.stdout, colorize("+ ", ColorGreen))
+			c.stdout.Write(replacedAndHighlighted)
 		}
 		if !c.dry {
 			replaced := substitute(line, c.find, c.replace, indices)
@@ -182,6 +184,8 @@ func main() {
 		os.Exit(1)
 	}
 	conf.replace = []byte(replacePat)
+	conf.stdout = os.Stdout
+	conf.stderr = os.Stderr
 
 	for filename := range files {
 		if err := conf.run(filename); err != nil {
