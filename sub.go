@@ -55,10 +55,9 @@ func (c *config) run(filename string) (err error) {
 			return err
 		}
 		defer func() {
-			err1 := temp.Close()
-			if err == nil {
-				err = err1
-			}
+			// Best-effort cleanup; if err == nil then temp is gone.
+			temp.Close()
+			os.Remove(temp.Name())
 		}()
 	}
 
@@ -119,6 +118,9 @@ lineLoop:
 	}
 
 	if !c.dry {
+		if err := temp.Close(); err != nil {
+			return err
+		}
 		if err := os.Rename(temp.Name(), filename); err != nil {
 			return err
 		}
