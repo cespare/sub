@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"os"
 	"regexp"
-	"time"
 
 	flag "github.com/cespare/pflag"
 )
@@ -27,8 +25,6 @@ func init() {
 	flag.BoolVarP(&verbose, "verbose", "v", false, "Print out detailed information about each match.")
 	flag.Usage = func() { usage(0) }
 	flag.Parse()
-
-	rand.Seed(time.Now().UnixNano())
 }
 
 func usage(status int) {
