@@ -3,9 +3,12 @@ package main
 import (
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"regexp"
+	"strconv"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -41,6 +44,25 @@ func isRegular(filename string) bool {
 		return false
 	}
 	return stat.Mode().IsRegular()
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+// tempFile is similar to ioutil.TempFile except that it creates filenames by appending a suffix to a given
+// base name. (This makes it easy to generate temp files that have a 1:1 correspondence with some other set of
+// files, regardless of whether those filenames are absolute or relative).
+func tempFile(base, suffix string, mode os.FileMode) (f *os.File, err error) {
+	for i := 0; i < 10000; i++ {
+		name := base + suffix + strconv.Itoa(rand.Intn(1e9))
+		f, err = os.OpenFile(name, os.O_RDWR|os.O_CREATE|os.O_EXCL, mode)
+		if os.IsExist(err) {
+			continue
+		}
+		break
+	}
+	return
 }
 
 const (

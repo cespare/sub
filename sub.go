@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"regexp"
 
@@ -19,7 +18,7 @@ type config struct {
 	replace []byte
 }
 
-func (c *config) run(filename string) error {
+func (c *config) run(filename string) (err error) {
 	if !isRegular(filename) {
 		if c.verb {
 			fmt.Fprintf(os.Stderr, "Skipping %s (not a regular file).\n", filename)
@@ -51,14 +50,16 @@ func (c *config) run(filename string) error {
 
 	var temp *os.File
 	if !c.dry {
-		temp, err = ioutil.TempFile(".", filename)
+		temp, err = tempFile(filename, ".sub-tmp", stat.Mode())
 		if err != nil {
 			return err
 		}
-		defer temp.Close()
-		if err := temp.Chmod(stat.Mode()); err != nil {
-			return err
-		}
+		defer func() {
+			err1 := temp.Close()
+			if err == nil {
+				err = err1
+			}
+		}()
 	}
 
 	matched := false
