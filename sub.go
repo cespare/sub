@@ -11,15 +11,6 @@ import (
 	flag "github.com/cespare/pflag"
 )
 
-func usage(status int) {
-	fmt.Printf(`Usage:
-		%s [OPTIONS] <FIND> <REPLACE> <FILE1> <FILE2> ...
-where OPTIONS are
-`, os.Args[0])
-	flag.PrintDefaults()
-	os.Exit(status)
-}
-
 type config struct {
 	dry  bool
 	verb bool
@@ -134,6 +125,16 @@ lineLoop:
 	return nil
 }
 
+func usage(status int) {
+	fmt.Printf(`Usage:
+  %s [OPTIONS] <FIND> <REPLACE> <FILE1> <FILE2> ...
+where OPTIONS are
+`, os.Args[0])
+	flag.PrintDefaults()
+	fmt.Println("If no files are listed, sub reads filenames from standard input, one name per line.")
+	os.Exit(status)
+}
+
 func main() {
 	var conf config
 	flag.BoolVarP(&conf.dry, "dry-run", "d", false, "Print out what would be changed without changing any files.")
@@ -141,13 +142,35 @@ func main() {
 	flag.Usage = func() { usage(0) }
 	flag.Parse()
 
+	files := make(chan string)
 	args := flag.Args()
-	if len(args) < 3 {
+	switch {
+	case len(args) < 2:
 		usage(1)
+	case len(args) == 2:
+		// Take filenames from stdin, one per line.
+		go func() {
+			scanner := bufio.NewScanner(os.Stdin)
+			for scanner.Scan() {
+				files <- scanner.Text()
+			}
+			if err := scanner.Err(); err != nil {
+				fmt.Println("Error reading from stdin:", err)
+				os.Exit(1)
+			}
+			close(files)
+		}()
+	default:
+		// Take filenames from the args after find and replace.
+		go func() {
+			for _, filename := range args[2:] {
+				files <- filename
+			}
+			close(files)
+		}()
 	}
 	findPat := args[0]
 	replacePat := args[1]
-	files := args[2:]
 
 	var err error
 	conf.find, err = regexp.Compile(findPat)
@@ -157,7 +180,7 @@ func main() {
 	}
 	conf.replace = []byte(replacePat)
 
-	for _, filename := range files {
+	for filename := range files {
 		if err := conf.run(filename); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
