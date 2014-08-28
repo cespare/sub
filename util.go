@@ -2,11 +2,46 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"regexp"
 	"syscall"
 	"unsafe"
 )
+
+const binaryDetectionBytes = 8000 // Same as git
+
+// isBinary guesses whether a file is binary by reading the first X bytes and seeing if there are any nulls.
+// Assumes the file starts seeked the beginning.
+func isBinary(file *os.File) bool {
+	defer file.Seek(0, 0)
+	buf := make([]byte, binaryDetectionBytes)
+	for {
+		n, err := file.Read(buf)
+		if err != nil && err != io.EOF {
+			return false
+		}
+		if n == 0 {
+			break
+		}
+		for i := 0; i < n; i++ {
+			if buf[i] == 0x00 {
+				return true
+			}
+		}
+		buf = buf[n:]
+	}
+	return false
+}
+
+// isRegular determines whether the file is a regular file or not.
+func isRegular(filename string) bool {
+	stat, err := os.Lstat(filename)
+	if err != nil {
+		return false
+	}
+	return stat.Mode().IsRegular()
+}
 
 const (
 	ColorReset  = 0
