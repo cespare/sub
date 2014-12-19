@@ -3,7 +3,7 @@
 package main
 
 import (
-	"os"
+	"io/ioutil"
 )
 
 func isatty(fd uintptr) bool {
@@ -13,9 +13,9 @@ func isatty(fd uintptr) bool {
 // Work around to Win os.Rename implementation:
 // http://code.google.com/p/go/issues/detail?id=3366
 func renameFile(oldpath, newpath string) error {
-	err := os.Remove(newpath)
-	if err != nil {
-		return err
-	}
-	return os.Rename(oldpath, newpath)
+    b, err := ioutil.ReadFile(oldpath)
+    if err != nil {
+        return err
+    }
+    return ioutil.WriteFile(newpath, b, 0644)
 }

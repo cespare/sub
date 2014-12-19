@@ -2,16 +2,16 @@
 
 Sub is a simple tool for doing find/replace across files.
 
-Sub is a new tool that modifies your files. Use it at your own risk. (In particular, commit or back up changes
+Sub is a tool that modifies your files. Use it at your own risk. (In particular, commit or back up changes
 before you have sub go to town on your data.)
 
-Sub (probably) doesn't work on Windows.
+Sub works on Unix and Windows.
 
 ## Installation
 
 You'll need Go installed. Then:
 
-    $ go get -u github.com/cespare/sub
+    $ go get github.com/cespare/sub
 
 ## Usage
 
@@ -19,10 +19,11 @@ You'll need Go installed. Then:
 
 ```
 Usage:
-    ./sub [OPTIONS] <FIND> <REPLACE> <FILE1> <FILE2> ...
+  ./sub [OPTIONS] <FIND> <REPLACE> <FILE1> <FILE2> ...
 where OPTIONS are
   -d, --dry-run=false: Print out what would be changed without changing any files.
   -v, --verbose=false: Print out detailed information about each match.
+If no files are listed, sub reads filenames from standard input, one name per line.
 ```
 
 I usually use `-dv` the first time so that I see what sub is going to do without having it make any changes.
@@ -46,6 +47,14 @@ sub '\d+' '($0)' **/*.txt
 
 # Replace sell -> buy, seller -> buyer, selling -> buying, etc.
 sub 'sell(\S*)' 'buy$1' *.txt
+```
+
+If you don't give any filenames to sub, it will read names from stdin. This means that you can use another
+tool, like `find(1)`, to prepare the list of files.
+
+```
+# Replace instances of 'foo' with 'bar' in .c files, recursively.
+find . -name '*.c' | sub foo bar
 ```
 
 ## Screenshot

@@ -2,9 +2,66 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"math/rand"
 	"os"
 	"regexp"
+	"strconv"
+	"time"
 )
+
+const binaryDetectionBytes = 8000 // Same as git
+
+// isBinary guesses whether a file is binary by reading the first X bytes and seeing if there are any nulls.
+// Assumes the file starts seeked the beginning.
+func isBinary(file *os.File) bool {
+	defer file.Seek(0, 0)
+	buf := make([]byte, binaryDetectionBytes)
+	for {
+		n, err := file.Read(buf)
+		if err != nil && err != io.EOF {
+			return false
+		}
+		if n == 0 {
+			break
+		}
+		for i := 0; i < n; i++ {
+			if buf[i] == 0x00 {
+				return true
+			}
+		}
+		buf = buf[n:]
+	}
+	return false
+}
+
+// isRegular determines whether the file is a regular file or not.
+func isRegular(filename string) bool {
+	stat, err := os.Lstat(filename)
+	if err != nil {
+		return false
+	}
+	return stat.Mode().IsRegular()
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+// tempFile is similar to ioutil.TempFile except that it creates filenames by appending a suffix to a given
+// base name. (This makes it easy to generate temp files that have a 1:1 correspondence with some other set of
+// files, regardless of whether those filenames are absolute or relative).
+func tempFile(base, suffix string, mode os.FileMode) (f *os.File, err error) {
+	for i := 0; i < 10000; i++ {
+		name := base + suffix + strconv.Itoa(rand.Intn(1e9))
+		f, err = os.OpenFile(name, os.O_RDWR|os.O_CREATE|os.O_EXCL, mode)
+		if os.IsExist(err) {
+			continue
+		}
+		break
+	}
+	return
+}
 
 const (
 	ColorReset  = 0
