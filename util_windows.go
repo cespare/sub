@@ -4,6 +4,7 @@ package main
 
 import (
 	"io/ioutil"
+	"os"
 )
 
 func isatty(fd uintptr) bool {
@@ -17,5 +18,9 @@ func renameFile(oldpath, newpath string) error {
     if err != nil {
         return err
     }
-    return ioutil.WriteFile(newpath, b, 0644)
+    err = ioutil.WriteFile(newpath, b, 0644)
+    if err != nil {
+        return err
+    }
+    return os.Remove(oldpath)
 }
