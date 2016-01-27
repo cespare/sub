@@ -19,7 +19,7 @@ You'll need Go installed. Then:
 
 ```
 Usage:
-  ./sub [OPTIONS] <FIND> <REPLACE> <FILE1> <FILE2> ...
+  sub [OPTIONS] <FIND> <REPLACE> <FILE1> <FILE2> ...
 where OPTIONS are
   -d, --dry-run=false: Print out what would be changed without changing any files.
   -v, --verbose=false: Print out detailed information about each match.
