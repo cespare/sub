@@ -1,5 +1,7 @@
 # sub
 
+[![Build Status](https://travis-ci.org/enr/sub.svg?branch=master)](https://travis-ci.org/enr/sub)
+
 Sub is a simple tool for doing find/replace across files.
 
 Sub is a tool that modifies your files. Use it at your own risk. (In particular, commit or back up changes
