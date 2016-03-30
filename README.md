@@ -9,9 +9,7 @@ Sub works on Unix and Windows.
 
 ## Installation
 
-You'll need Go installed. Then:
-
-    $ go get github.com/cespare/sub
+Download the binary from https://github.com/enr/sub/releases
 
 ## Usage
 
@@ -19,10 +17,11 @@ You'll need Go installed. Then:
 
 ```
 Usage:
-  ./sub [OPTIONS] <FIND> <REPLACE> <FILE1> <FILE2> ...
+  ./dist/sub-linux-amd64 [OPTIONS] <FIND> <REPLACE> <FILE1> <FILE2> ...
 where OPTIONS are
   -d, --dry-run=false: Print out what would be changed without changing any files.
-  -v, --verbose=false: Print out detailed information about each match.
+  -V, --verbose=false: Print out detailed information about each match.
+  -v, --version=false: Print out version.
 If no files are listed, sub reads filenames from standard input, one name per line.
 ```
 
