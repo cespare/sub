@@ -25,7 +25,7 @@ where OPTIONS are
 If no files are listed, sub reads filenames from standard input, one name per line.
 ```
 
-I usually use `-dv` the first time so that I see what sub is going to do without having it make any changes.
+I usually use `-dV` the first time so that I see what sub is going to do without having it make any changes.
 
 ## Examples
 

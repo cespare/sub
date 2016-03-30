@@ -19,6 +19,7 @@ func TestBasic(t *testing.T) {
 		{"foo bar foo\n", "bar\n", "foo.*", "bar"},
 		{"foobar", "boobar", `f(o+)`, "b$1"},
 		{"foo\n", "bar\n", "foo", "bar"},
+		{"foù ànd bàr\n", "foù _nd b_r\n", "à", "_"},
 	} {
 		temp := writeTemp(t, testCase.before)
 		conf := testConf(testCase.find, testCase.replace)

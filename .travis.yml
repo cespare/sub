@@ -1,0 +1,15 @@
+sudo: false
+
+language: go
+go:
+  - 1.6
+
+env:
+  global:
+    - PATH=$GOPATH:$PATH
+
+before_install:
+  - go get -u github.com/constabulary/gb/...
+
+script:
+  - gb test sub
