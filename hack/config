@@ -1,0 +1,5 @@
+GH_OWNER='enr'
+GH_REPO='sub'
+DIST_DIR='dist'
+
+APP_VERSION='0.1-SNAPSHOT'

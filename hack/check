@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+set -e
+
+TOOL_SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$TOOL_SOURCE" ] ; do TOOL_SOURCE="$(readlink "$TOOL_SOURCE")"; done
+HACK_DIR="$( cd -P "$( dirname "$TOOL_SOURCE" )" && pwd )"
+PRJ_HOME="$( cd -P "$( dirname "$HACK_DIR" )" && pwd )"
+SRC_DIR="${PRJ_HOME}/src"
+
+source "${HACK_DIR}/config"
+
+src_dirs=( "${GH_REPO}" )
+
+[[ -d "${PRJ_HOME}/bin" ]] && rm -r "${PRJ_HOME}/bin"
+[[ -d "${PRJ_HOME}/pkg" ]] && rm -r "${PRJ_HOME}/pkg"
+
+hash gb 2>/dev/null || {
+    go get -u github.com/constabulary/gb/...
+}
+
+export GOPATH="${PRJ_HOME}:${PRJ_HOME}/vendor"
+
+
+cd "${PRJ_HOME}"
+for pkg_dir in "${src_dirs[@]}"; do
+	cd "${SRC_DIR}/${pkg_dir}"
+	golint
+	go fmt ./...
+	go vet ./...
+	goimports -w .
+  # - diff <(goimports -d .) <(printf "")
+  # - diff <(golint ./...) <(printf "")
+done
+
+cd "$PRJ_HOME"
+gb build "${GH_REPO}"
+#gb test dups
+
+for pkg_dir in "${src_dirs[@]}"; do
+    cd "${SRC_DIR}/${pkg_dir}"
+    echo 'go test -cpu=1,2,4 -race ./...'
+	go test -cpu=1,2,4 -race ./...
+    echo 'go test -cover ./...'
+	go test -cover ./...
+done
+
+for dir in $(find "$SRC_DIR" -mindepth 1 -maxdepth 1 -type d); do
+	echo " - Process $dir"
+	bname=$(basename "$dir")
+	echo $bname
+done

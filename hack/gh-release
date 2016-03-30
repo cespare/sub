@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+set -e
+
+TOOL_SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$TOOL_SOURCE" ] ; do TOOL_SOURCE="$(readlink "$TOOL_SOURCE")"; done
+HACK_DIR="$( cd -P "$( dirname "$TOOL_SOURCE" )" && pwd )"
+PRJ_HOME="$( cd -P "$( dirname "$HACK_DIR" )" && pwd )"
+
+source "${HACK_DIR}/config"
+
+git_dirty=$(git status --porcelain)
+[[ -n "$git_dirty" ]] && {
+    echo 'uncommitted changes detected: aborting release'
+    exit 1
+}
+
+[[ -z "$GH_TOKEN" ]] && {
+    echo "Missing GH_TOKEN"
+    exit 1
+}
+
+# https://github.com/tcnksm/ghr/releases/download/v0.4.0/ghr_v0.4.0_linux_amd64.zip
+command -v ghr >/dev/null || {
+    echo "ghr not found"
+    exit 1
+}
+
+[[ -z "$GH_OWNER" ]] && {
+    echo "no gh owner"
+    exit 1
+}
+[[ -z "$GH_REPO" ]] && {
+    echo "no gh repo"
+    exit 1
+}
+
+if [ -z "$APP_VERSION" ]; then
+    echo 'no release version supplied. $APP_VERSION expected'
+    exit 1
+fi
+
+RELEASE_VERSION="v$APP_VERSION"
+git tag -a "${RELEASE_VERSION}" -m "release version ${RELEASE_VERSION}"
+git push origin "${RELEASE_VERSION}"
+
+if [ "$1" = "--prod" ]; then
+    PRERELEASE=''
+else
+    PRERELEASE='--prerelease'
+fi
+
+echo "Release $PRJ_HOME version $RELEASE_VERSION $PRERELEASE"
+
+"${HACK_DIR}/build-dist"
+
+[[ -z "$DIST_DIR" ]] && {
+    echo "dist directory not found: ${DIST_DIR}"
+    exit 1
+}
+
+#ghr -t "$GH_TOKEN" -u "$GH_OWNER" -r "$GH_REPO" "$PRERELEASE" "$RELEASE_VERSION" "$DIST_DIR"
+GHR_COMMAND="ghr -t ${GH_TOKEN} -u ${GH_OWNER} -r ${GH_REPO} ${PRERELEASE} ${RELEASE_VERSION} ${DIST_DIR}"
+echo "$GHR_COMMAND"
+sh -c "$GHR_COMMAND"

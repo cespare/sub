@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -e
+
+TOOL_SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$TOOL_SOURCE" ] ; do TOOL_SOURCE="$(readlink "$TOOL_SOURCE")"; done
+HACK_DIR="$( cd -P "$( dirname "$TOOL_SOURCE" )" && pwd )"
+PRJ_HOME="$( cd -P "$( dirname "$HACK_DIR" )" && pwd )"
+
+source "${HACK_DIR}/config"
+
+[[ -d "${PRJ_HOME}/bin" ]] && rm -r "${PRJ_HOME}/bin"
+[[ -d "${PRJ_HOME}/pkg" ]] && rm -r "${PRJ_HOME}/pkg"
+
+hash gb 2>/dev/null || {
+    go get -u github.com/constabulary/gb/...
+}
+
+cd "${PRJ_HOME}"
+
+buildtime=$(TZ=UTC date -u '+%Y-%m-%dT%H:%M:%SZ')
+git_hash="$(git rev-parse HEAD)"
+git_dirty="$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)"
+git_commit="${git_hash}${git_dirty}"
+echo "building ${GH_REPO}"
+echo "version : ${APP_VERSION}"
+echo "git : ${git_commit}"
+echo "build time : ${buildtime}"
+
+gb build -ldflags "-s \
+-X main.Version=${APP_VERSION} \
+-X main.BuildTime=${buildtime} \
+-X main.GitCommit=${git_commit}" all

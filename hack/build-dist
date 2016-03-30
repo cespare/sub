@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+set -e
+
+TOOL_SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$TOOL_SOURCE" ] ; do TOOL_SOURCE="$(readlink "$TOOL_SOURCE")"; done
+HACK_DIR="$( cd -P "$( dirname "$TOOL_SOURCE" )" && pwd )"
+PRJ_HOME="$( cd -P "$( dirname "$HACK_DIR" )" && pwd )"
+
+source "${HACK_DIR}/config"
+
+buildtime=$(TZ=UTC date -u '+%Y-%m-%dT%H:%M:%SZ')
+git_hash="$(git rev-parse HEAD)"
+git_dirty="$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)"
+git_commit="${git_hash}${git_dirty}"
+echo "building ${GH_REPO}"
+echo "version : ${APP_VERSION}"
+echo "git : ${git_commit}"
+echo "build time : ${buildtime}"
+
+[[ -z "$DIST_DIR" ]] && {
+    echo "no dist dir"
+    exit 1
+}
+
+[[ -d "${PRJ_HOME}/bin" ]] && rm -r "${PRJ_HOME}/bin"
+[[ -d "${PRJ_HOME}/pkg" ]] && rm -r "${PRJ_HOME}/pkg"
+[[ -d "$DIST_DIR" ]] && rm -r "$DIST_DIR"
+mkdir -p "$DIST_DIR"
+
+hash gb 2>/dev/null || {
+    go get -u github.com/constabulary/gb/...
+}
+
+platforms="windows/amd64 linux/amd64 darwin/amd64"
+
+for platform in $platforms; do
+	target_goos=$(echo $platform | cut -d/ -f1)
+	target_goarch=$(echo $platform | cut -d/ -f2)
+    echo "building for ${target_goos} ${target_goarch}"
+    GOOS="$target_goos" GOARCH="$target_goarch" gb build -ldflags "-s \
+  -X main.Version=${APP_VERSION} \
+  -X main.BuildTime=${buildtime} \
+  -X main.GitCommit=${git_commit}" all > /dev/null
+    ext=''
+    [[ "windows" = "$target_goos" ]] && ext='.exe'
+    built="${PRJ_HOME}/bin/${GH_REPO}-${target_goos}-${target_goarch}${ext}"
+    [[ -e "$built" ]] || {
+        echo "expected file not found: ${built}"
+        exit 1
+    }
+    mv "$built" "$DIST_DIR"
+done

@@ -11,6 +11,18 @@ import (
 	"github.com/mattn/go-colorable"
 )
 
+var (
+	versionTemplate = `%s
+Revision: %s
+Build date: %s
+`
+	subVersion string
+)
+
+func init() {
+	subVersion = fmt.Sprintf(versionTemplate, Version, GitCommit, BuildTime)
+}
+
 type config struct {
 	dry  bool
 	verb bool
@@ -132,21 +144,31 @@ lineLoop:
 }
 
 func usage(status int) {
-	fmt.Printf(`Usage:
+	fmt.Printf(`
+Sub %s
+Usage:
   %s [OPTIONS] <FIND> <REPLACE> <FILE1> <FILE2> ...
 where OPTIONS are
-`, os.Args[0])
+`, 	subVersion,
+	os.Args[0])
 	flag.PrintDefaults()
 	fmt.Println("If no files are listed, sub reads filenames from standard input, one name per line.")
 	os.Exit(status)
 }
 
 func main() {
+	var version bool
+	flag.BoolVarP(&version, "version", "v", false, "Print out version.")
 	var conf config
 	flag.BoolVarP(&conf.dry, "dry-run", "d", false, "Print out what would be changed without changing any files.")
-	flag.BoolVarP(&conf.verb, "verbose", "v", false, "Print out detailed information about each match.")
+	flag.BoolVarP(&conf.verb, "verbose", "V", false, "Print out detailed information about each match.")
 	flag.Usage = func() { usage(0) }
 	flag.Parse()
+
+	if version {
+		fmt.Printf(`Sub %s`, subVersion)
+		os.Exit(0)
+	}
 
 	files := make(chan string)
 	args := flag.Args()

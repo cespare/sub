@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -e
+
+TOOL_SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$TOOL_SOURCE" ] ; do TOOL_SOURCE="$(readlink "$TOOL_SOURCE")"; done
+HACK_DIR="$( cd -P "$( dirname "$TOOL_SOURCE" )" && pwd )"
+PRJ_HOME="$( cd -P "$( dirname "$HACK_DIR" )" && pwd )"
+
+cd "$PRJ_HOME"
+
+go get -u github.com/constabulary/gb/...
+
+gb vendor update -all
