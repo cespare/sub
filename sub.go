@@ -7,7 +7,7 @@ import (
 	"os"
 	"regexp"
 
-	flag "github.com/cespare/pflag"
+	"github.com/ogier/pflag"
 )
 
 type config struct {
@@ -135,20 +135,20 @@ func usage(status int) {
   %s [OPTIONS] <FIND> <REPLACE> <FILE1> <FILE2> ...
 where OPTIONS are
 `, os.Args[0])
-	flag.PrintDefaults()
+	pflag.PrintDefaults()
 	fmt.Println("If no files are listed, sub reads filenames from standard input, one name per line.")
 	os.Exit(status)
 }
 
 func main() {
 	var conf config
-	flag.BoolVarP(&conf.dry, "dry-run", "d", false, "Print out what would be changed without changing any files.")
-	flag.BoolVarP(&conf.verb, "verbose", "v", false, "Print out detailed information about each match.")
-	flag.Usage = func() { usage(0) }
-	flag.Parse()
+	pflag.BoolVarP(&conf.dry, "dry-run", "d", false, "Print out what would be changed without changing any files.")
+	pflag.BoolVarP(&conf.verb, "verbose", "v", false, "Print out detailed information about each match.")
+	pflag.Usage = func() { usage(0) }
+	pflag.Parse()
 
 	files := make(chan string)
-	args := flag.Args()
+	args := pflag.Args()
 	switch {
 	case len(args) < 2:
 		usage(1)

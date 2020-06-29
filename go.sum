@@ -1,2 +1,2 @@
-github.com/cespare/pflag v0.0.0-20130603212112-7d5705d147fc h1:nQ+pk/Q0KGHvEObu0sweRvlBtzCoAZ/NPxIafWq/urU=
-github.com/cespare/pflag v0.0.0-20130603212112-7d5705d147fc/go.mod h1:jimAQluoIDwMcL/sOwn7szqF7EU4Jns0Ctj2Uvcq/IE=
+github.com/ogier/pflag v0.0.1 h1:RW6JSWSu/RkSatfcLtogGfFgpim5p7ARQ10ECk5O750=
+github.com/ogier/pflag v0.0.1/go.mod h1:zkFki7tvTa0tafRvTBIZTvzYyAu6kQhPZFnshFFPE+g=
