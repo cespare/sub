@@ -2,8 +2,8 @@
 
 Sub is a simple tool for doing find/replace across files.
 
-Sub is a tool that modifies your files. Use it at your own risk. (In particular, commit or back up changes
-before you have sub go to town on your data.)
+Sub is a tool that modifies your files. Use it at your own risk. (In particular,
+commit or back up changes before you have sub go to town on your data.)
 
 Sub (probably) doesn't work on Windows.
 
@@ -26,14 +26,16 @@ where OPTIONS are
 If no files are listed, sub reads filenames from standard input, one name per line.
 ```
 
-I usually use `-dv` the first time so that I see what sub is going to do without having it make any changes.
+I usually use `-dv` the first time so that I see what sub is going to do without
+having it make any changes.
 
 ## Examples
 
-In order to give sub a list of files, I generally make use of my shell's globbing capabilities. For instance,
-I often use `*.go` to indicate all `.go` files in the current directory. I also make use of ZSH's recursive
-globbing; so `**/*.go` to indicate all `.go` files in all subdirectories. If you're a bash user, you can get
-the same feature via `globstar` (see `man bash`).
+In order to give sub a list of files, I generally make use of my shell's
+globbing capabilities. For instance, I often use `*.go` to indicate all `.go`
+files in the current directory. I also make use of ZSH's recursive globbing; so
+`**/*.go` to indicate all `.go` files in all subdirectories. If you're a bash
+user, you can get the same feature via `globstar` (see `man bash`).
 
 ```
 # Replace instances of 'foo' with 'bar' in all .txt files.
@@ -49,8 +51,9 @@ sub '\d+' '($0)' **/*.txt
 sub 'sell(\S*)' 'buy$1' *.txt
 ```
 
-If you don't give any filenames to sub, it will read names from stdin. This means that you can use another
-tool, like `find(1)`, to prepare the list of files.
+If you don't give any filenames to sub, it will read names from stdin. This
+means that you can use another tool, like `find(1)`, to prepare the list of
+files.
 
 ```
 # Replace instances of 'foo' with 'bar' in .c files, recursively.
@@ -59,11 +62,12 @@ find . -name '*.c' | sub foo bar
 
 ## Screenshot
 
-![screenshot](http://i.imgur.com/0ZOSUlo.png)
+![screenshot](screenshot.png)
 
 ## Notes
 
-See the documentation for the regular expression syntax used by the `FIND` pattern here:
+See the documentation for the regular expression syntax used by the `FIND`
+pattern here:
 
 http://golang.org/pkg/regexp/syntax/
 
