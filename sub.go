@@ -64,24 +64,10 @@ func (c *config) run(filename string) (err error) {
 	}
 
 	matched := false
-	done := false
-	reader := bufio.NewReader(f)
-
-lineLoop:
-	for !done {
-		line, err := reader.ReadBytes('\n')
-		switch err {
-		case nil:
-		case io.EOF:
-			done = true
-			if len(line) == 0 {
-				break lineLoop
-			}
-		default:
-			fmt.Fprintln(c.stderr, err)
-			break lineLoop
-		}
-
+	scanner := bufio.NewScanner(f)
+	scanner.Buffer(make([]byte, 100e3), 10e6)
+	for scanner.Scan() {
+		line := scanner.Bytes()
 		indices := c.find.FindAllIndex(line, -1)
 		if indices == nil {
 			if !c.dry {
@@ -107,16 +93,22 @@ lineLoop:
 
 			fmt.Fprint(c.stdout, colorize("- ", ColorRed))
 			c.stdout.Write(highlighted)
+			c.stdout.Write([]byte{'\n'})
 			fmt.Fprint(c.stdout, colorize("+ ", ColorGreen))
 			c.stdout.Write(replacedAndHighlighted)
+			c.stdout.Write([]byte{'\n'})
 		}
 		if !c.dry {
 			replaced := substitute(line, c.find, c.replace, indices)
+			replaced = append(replaced, '\n')
 			_, err := temp.Write(replaced)
 			if err != nil {
 				return err
 			}
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(c.stderr, err)
 	}
 
 	if !c.dry {

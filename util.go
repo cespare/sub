@@ -125,7 +125,7 @@ func subAndHighlight(b []byte, find *regexp.Regexp, replace []byte, color int, r
 // Assumes that ranges are sorted and non-overlapping.
 func modifyRanges(b []byte, ranges [][]int, f modifier) []byte {
 	idx := 0
-	result := make([]byte, 0, len(b)) // Heuristic
+	result := make([]byte, 0, len(b)+1)
 	for _, interval := range ranges {
 		low, high := interval[0], interval[1]
 		result = append(result, b[idx:low]...)
