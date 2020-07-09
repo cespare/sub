@@ -29,6 +29,12 @@ If no files are listed, sub reads filenames from standard input, one name per li
 I usually use `-dv` the first time so that I see what sub is going to do without
 having it make any changes.
 
+Sub matches the pattern against the file line-by-line, ignoring line termination
+markers (`\r\n` or `\n`). This means:
+
+* Multi-line regular expressions will never match multiple lines
+* Zero-width matching characters such as `^`, `$`, or `\A` match once on each line
+
 ## Examples
 
 In order to give sub a list of files, I generally make use of my shell's
