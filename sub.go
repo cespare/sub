@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -65,14 +66,16 @@ func (c *config) run(filename string) (err error) {
 
 	matched := false
 	scanner := bufio.NewScanner(f)
+	scanner.Split(scanLines)
 	scanner.Buffer(make([]byte, 100e3), 10e6)
 	for scanner.Scan() {
 		line := scanner.Bytes()
-		indices := c.find.FindAllIndex(line, -1)
+		// Run the regex against the line text itself (not including
+		// terminating marker).
+		indices := c.find.FindAllIndex(trimCR(line), -1)
 		if indices == nil {
 			if !c.dry {
-				_, err := temp.Write(line)
-				if err != nil {
+				if _, err := temp.Write(line); err != nil {
 					return err
 				}
 			}
@@ -93,16 +96,12 @@ func (c *config) run(filename string) (err error) {
 
 			fmt.Fprint(c.stdout, colorize("- ", ColorRed))
 			c.stdout.Write(highlighted)
-			c.stdout.Write([]byte{'\n'})
 			fmt.Fprint(c.stdout, colorize("+ ", ColorGreen))
 			c.stdout.Write(replacedAndHighlighted)
-			c.stdout.Write([]byte{'\n'})
 		}
 		if !c.dry {
 			replaced := substitute(line, c.find, c.replace, indices)
-			replaced = append(replaced, '\n')
-			_, err := temp.Write(replaced)
-			if err != nil {
+			if _, err := temp.Write(replaced); err != nil {
 				return err
 			}
 		}
@@ -120,6 +119,34 @@ func (c *config) run(filename string) (err error) {
 		}
 	}
 	return nil
+}
+
+func trimCR(line []byte) []byte {
+	n := len(line)
+	if n > 0 && line[n-1] == '\n' {
+		if n > 1 && line[n-2] == '\r' {
+			return line[:n-1]
+		}
+		return line[:n-1]
+	}
+	return line
+}
+
+// scanLines is like bufio.ScanLines except that it includes any end-of-line
+// marker in the yielded tokens.
+func scanLines(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	if atEOF && len(data) == 0 {
+		return 0, nil, nil
+	}
+	if i := bytes.IndexByte(data, '\n'); i >= 0 {
+		return i + 1, data[:i+1], nil
+	}
+	if atEOF {
+		// We have a final, non-terminated line.
+		return len(data), data, nil
+	}
+	// Request more data.
+	return 0, nil, nil
 }
 
 func usage(status int) {

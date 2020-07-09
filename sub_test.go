@@ -15,11 +15,12 @@ func TestBasic(t *testing.T) {
 		replace string
 	}{
 		{"foo\n", "bar\n", "foo", "bar"},
-		{"foo bar foo", "bar bar bar\n", "foo", "bar"},
+		{"foo bar foo", "bar bar bar", "foo", "bar"},
 		{"foo bar foo\n", "bar\n", "foo.*", "bar"},
 		{"foobar\n", "boobar\n", `f(o+)`, "b$1"},
 		{"foo\n", "bar\n", "foo", "bar"},
 		{"xyz xyz\n", "xyz abc\n", "xyz$", "abc"},
+		{"abc\r\n123\nabc\nxyz", "def\r\n123\ndef\nxyz", "abc", "def"},
 	} {
 		temp := writeTemp(t, testCase.before)
 		conf := testConf(testCase.find, testCase.replace)
